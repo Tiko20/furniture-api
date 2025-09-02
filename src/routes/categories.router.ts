@@ -27,10 +27,10 @@ categoriesRouter.get("/materials", async (req, res) => {
 categoriesRouter.delete("/delete-color", async (req, res) => {
   try {
     const { id } = req.body;
-    const colors = await categoriesController.deleteColor(id);
-    res.status(204).json("Color deleted successfully");
+     await categoriesController.deleteColor(id);
+    res.status(204).json({ "Color deleted successfully" });
   } catch (error) {
-    res.status(500).json({error : "Failed to delete color"});
+    res.status(500).json({ error: "Failed to delete color" });
   }
 });
 
