@@ -39,6 +39,6 @@ export const categoriesController = {
   async deleteColor(id: number) {
     const query = "DELETE FROM color_category  WHERE id = $1";
     const { rowCount } = await pool.query(query, [id]);
-    return { deletedRows: rowCount };
+    return rowCount;
   },
 };

@@ -1,0 +1,1 @@
+export type BannerImgType =  | "homeSlider" | "aboutUs" | "contactUs";
