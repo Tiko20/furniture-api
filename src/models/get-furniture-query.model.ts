@@ -1,13 +1,14 @@
-import { BannerImgType } from "./banner-img.type";
+import { FurnitureStateEnum } from "./furniture-state.enum";
 import { SortFilterEnum } from "./sort-filter.enum";
 
 export interface GetFurnitureQueryModel {
   page?: string;
   colorIds?: string[];
-  materialIds?: string[];
-  roomCategoryIds?: string[];
+  categories?: string[];
+  materials?: string[];
+  roomCategories?: string[];
   minPrice?: string[];
   maxPrice?: string[];
   sort?: SortFilterEnum;
-  bannerImgTypes?: BannerImgType;
+  states?: FurnitureStateEnum[];
 }
