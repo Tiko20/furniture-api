@@ -8,6 +8,8 @@ import { MaterialEnum } from "../models/material.enum";
 import { RoomsEnum } from "../models/rooms.enum";
 import { FurnitureStateEnum } from "../models/furniture-state.enum";
 import { FurnitureCategoryEnum } from "../models/furniture-category.enum";
+import { createFurnitureValidationSchema } from "../validations/create-furniture-validation.schema";
+import { updateFurnitureValidationSchema } from "../validations/update-furniture-validation.schema";
 
 const furnitureRouter = express.Router();
 
@@ -78,52 +80,37 @@ furnitureRouter.get("/", async (req, res) => {
 });
 
 furnitureRouter.post("/create", async (req, res) => {
-  const {
-    category,
-    color_id,
-    description,
-    img_src,
-    material,
-    price,
-    room_category,
-    subtitle,
-    state,
-  }: CreateFurnitureModel = req.body;
-
-  try {
-    const result = await furnitureController.createFurniture({
-      category,
-      color_id,
-      description,
-      img_src,
-      material,
-      price,
-      room_category,
-      subtitle,
-      state,
-    });
-    res.json(result);
-  } catch (error) {
-    res.json({ error: error });
+  const furniture: CreateFurnitureModel = req.body;
+  const parseData = createFurnitureValidationSchema.safeParse(furniture);
+  if (!parseData.success) {
+    res.status(500).json(parseData.error.issues);
+  } else {
+    try {
+      const result = await furnitureController.createFurniture(parseData.data);
+      res.json({
+        message: "Furniture created successfully",
+        Furniture: result,
+      });
+    } catch (error) {
+      res.json({ error: error });
+    }
   }
 });
 
 furnitureRouter.put("/update/:id", async (req, res) => {
   const { id } = req.params;
-  const { description, price, state, subtitle }: UpdateFurnitureModel =
-    req.body;
+  const furniture: UpdateFurnitureModel = req.body;
 
-  try {
-    await furnitureController.updateFurniture(Number(id), {
-      description,
-      price,
-      state,
-      subtitle,
-    });
-
-    res.json("Updated successfully");
-  } catch (error) {
-    res.json(error);
+  const parseData = updateFurnitureValidationSchema.safeParse(furniture);
+  if (!parseData.success) {
+    res.status(500).json(parseData.error.issues);
+  } else {
+    try {
+      await furnitureController.updateFurniture(Number(id), parseData.data);
+      res.json("Updated successfully");
+    } catch (error) {
+      res.json(error);
+    }
   }
 });
 

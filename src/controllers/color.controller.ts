@@ -10,10 +10,11 @@ export const colorController = {
 
   async addColor(colorCategoryData: AddColorModel) {
     const query =
-      "INSERT INTO colors (name, code) VALUES ($1,$2) RETURNING id, name";
+      "INSERT INTO colors (name, code, title) VALUES ($1,$2,$3) RETURNING *";
     const { rows } = await pool.query(query, [
       colorCategoryData.name,
       colorCategoryData.code,
+      colorCategoryData.title,
     ]);
     return rows[0];
   },
