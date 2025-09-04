@@ -1,0 +1,17 @@
+export enum FurnitureCategoryEnum {
+  CHAIR = "chair",
+  TABLE = "table",
+  SOFA = "sofa",
+  BED = "bed",
+  WARDROBE = "wardrobe",
+  DESK = "desk",
+  BOOKSHELF = "bookshelf",
+  COFFEE_TABLE = "coffeeTable",
+  NIGHTSTAND = "nightstand",
+  ARMCHAIR = "armchair",
+  CABINET = "cabinet",
+  DRESSER = "dresser",
+  STOOL = "stool",
+  TV_STAND = "TVStand",
+  BENCH = "bench",
+}
