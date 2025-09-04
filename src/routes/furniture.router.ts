@@ -3,47 +3,20 @@ import { furnitureController } from "../controllers/furniture.controller";
 import { CreateFurnitureModel } from "../models/create-furniture.model";
 import { UpdateFurnitureModel } from "../models/update-furniture.model";
 import { GetFurnitureQueryModel } from "../models/get-furniture-query.model";
-import { BannerImgType } from "../models/banner-img.type";
 import { toArray } from "../utils/to-array.util";
+import { MaterialEnum } from "../models/material.enum";
+import { RoomsEnum } from "../models/rooms.enum";
+import { FurnitureStateEnum } from "../models/furniture-state.enum";
+import { FurnitureCategoryEnum } from "../models/furniture-category.enum";
 
 const furnitureRouter = express.Router();
 
-furnitureRouter.get("/", async (req, res) => {
-  const {
-    bannerImgTypes,
-    colorIds,
-    materialIds,
-    page,
-    minPrice,
-    maxPrice,
-    roomCategoryIds,
-    sort,
-  } = req.query as unknown as GetFurnitureQueryModel;
-
-  const parsedColorIds = toArray(colorIds, true) as number[];
-  const parsedMaterialIds = toArray(materialIds, true) as number[];
-  const parsedRoomCategoryIds = toArray(roomCategoryIds, true) as number[];
-  const parsedBannerImgTypes = toArray(bannerImgTypes) as BannerImgType[];
-  const parsedPage = page ? Number(page) : undefined;
-  const parsedMinPrice =
-    minPrice !== null && Number(minPrice) ? Number(minPrice) : undefined;
-  const parsedMaxPrice =
-    maxPrice !== null && Number(maxPrice) ? Number(maxPrice) : undefined;
-
+furnitureRouter.get("/all", async (_, res) => {
   try {
-    const result = await furnitureController.getFurniture({
-      bannerImgTypes: parsedBannerImgTypes,
-      colorId: parsedColorIds,
-      materialId: parsedMaterialIds,
-      page: parsedPage,
-      minPrice: parsedMinPrice,
-      maxPrice: parsedMaxPrice,
-      roomCategoryIds: parsedRoomCategoryIds,
-      sort,
-    });
+    const result = await furnitureController.getAllFurniture();
     res.json(result);
   } catch (error) {
-    res.json({ error: "Get furniture failed" });
+    res.json({ error: "Failed to get all furniture" });
   }
 });
 
@@ -51,65 +24,97 @@ furnitureRouter.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const result = await furnitureController.getFurnitureById(Number(id));
-    res.status(200).json(result);
+    res.json(result);
   } catch (error) {
-    res.status(500).json(error);
+    res.json(error);
   }
 });
 
-furnitureRouter.get("/all", async (_, res) => {
+furnitureRouter.get("/", async (req, res) => {
+  const {
+    states,
+    categories,
+    colorIds,
+    materials,
+    page,
+    minPrice,
+    maxPrice,
+    roomCategories,
+    sort,
+  } = req.query as unknown as GetFurnitureQueryModel;
+
+  const parsedColorIds = toArray(colorIds, true) as number[];
+  const parsedMaterials = toArray(materials) as MaterialEnum[];
+  const parsedRoomCategory = toArray(roomCategories) as RoomsEnum[];
+  const parsedStates = toArray(states) as FurnitureStateEnum[];
+  const parsedCategories = toArray(categories) as FurnitureCategoryEnum[];
+  const parsedPage = page ? Number(page) : undefined;
+  const parsedMinPrice =
+    minPrice !== undefined && !isNaN(Number(minPrice))
+      ? Number(minPrice)
+      : undefined;
+
+  const parsedMaxPrice =
+    maxPrice !== undefined && !isNaN(Number(maxPrice))
+      ? Number(maxPrice)
+      : undefined;
+
   try {
-    const result = await furnitureController.getAllFurniture();
-    res.status(200).json(result);
+    const result = await furnitureController.getFurniture({
+      states: parsedStates,
+      categories: parsedCategories,
+      colorIds: parsedColorIds,
+      materials: parsedMaterials,
+      page: parsedPage,
+      minPrice: parsedMinPrice,
+      maxPrice: parsedMaxPrice,
+      roomCategories: parsedRoomCategory,
+      sort,
+    });
+    res.json(result);
   } catch (error) {
-    res.status(500).json(error);
+    res.json(error);
   }
 });
 
 furnitureRouter.post("/create", async (req, res) => {
   const {
-    colorId,
+    category,
+    color_id,
     description,
-    imgSRC,
-    materialId,
+    img_src,
+    material,
     price,
-    roomCategoryId,
+    room_category,
     subtitle,
-    bannerImgType,
     state,
   }: CreateFurnitureModel = req.body;
 
   try {
     const result = await furnitureController.createFurniture({
-      colorId,
+      category,
+      color_id,
       description,
-      imgSRC,
-      materialId,
+      img_src,
+      material,
       price,
-      roomCategoryId,
+      room_category,
       subtitle,
-      bannerImgType,
       state,
     });
-    res.status(201).json(result);
+    res.json(result);
   } catch (error) {
-    res.status(500).json({ error: error });
+    res.json({ error: error });
   }
 });
 
 furnitureRouter.put("/update/:id", async (req, res) => {
   const { id } = req.params;
-  const {
-    bannerImgType,
-    description,
-    price,
-    state,
-    subtitle,
-  }: UpdateFurnitureModel = req.body;
+  const { description, price, state, subtitle }: UpdateFurnitureModel =
+    req.body;
 
   try {
     await furnitureController.updateFurniture(Number(id), {
-      bannerImgType,
       description,
       price,
       state,

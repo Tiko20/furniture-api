@@ -1,16 +1,16 @@
-import { BannerImgType } from "./banner-img.type";
-
-export type FurnitureState = "sale" | "new";
+import { FurnitureCategoryEnum } from "./furniture-category.enum";
+import { FurnitureStateEnum } from "./furniture-state.enum";
+import { MaterialEnum } from "./material.enum";
+import { RoomsEnum } from "./rooms.enum";
 
 export interface CreateFurnitureModel {
-  colorId: number;
-  materialId: number;
-  roomCategoryId: number;
-  price: number;
+  category: FurnitureCategoryEnum;
+  state: FurnitureStateEnum;
   subtitle: string;
   description: string;
-  state?: FurnitureState;
-  imgSRC: string;
-  bannerImgType?: BannerImgType;
+  price: number;
+  img_src: string;
+  color_id: number;
+  material: MaterialEnum;
+  room_category: RoomsEnum;
 }
-

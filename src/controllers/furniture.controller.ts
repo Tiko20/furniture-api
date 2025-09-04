@@ -1,58 +1,66 @@
 import pool from "../db/connect-db";
 import { GetFurnitureModel } from "../models/get-furniture.model";
-import { BannerImgType } from "../models/banner-img.type";
 import { CreateFurnitureModel } from "../models/create-furniture.model";
 import { UpdateFurnitureModel } from "../models/update-furniture.model";
 
 export const furnitureController = {
   async getFurniture({
-    colorId,
-    materialId,
+    colorIds,
+    materials,
+    categories,
     page = 1,
     minPrice,
     maxPrice,
-    roomCategoryIds,
+    roomCategories,
     sort,
-    bannerImgTypes,
+    states,
   }: GetFurnitureModel) {
     const values: any[] = [];
     let whereClauses: string[] = [];
 
     // Color filter
-    if (colorId && colorId.length > 0) {
-      values.push(...colorId);
-      const placeholders = colorId.map(
-        (_, i) => `$${values.length - colorId.length + i + 1}`
+    if (colorIds && colorIds.length > 0) {
+      values.push(...colorIds);
+      const placeholders = colorIds.map(
+        (_, i) => `$${values.length - colorIds.length + i + 1}`
       );
       whereClauses.push(`color_id IN (${placeholders.join(", ")})`);
     }
 
     // Material filter
-    if (materialId && materialId.length > 0) {
-      values.push(...materialId);
-      const placeholders = materialId.map(
-        (_, i) => `$${values.length - materialId.length + i + 1}`
+    if (materials && materials.length > 0) {
+      values.push(...materials);
+      const placeholders = materials.map(
+        (_, i) => `$${values.length - materials.length + i + 1}`
       );
-      whereClauses.push(`material_id IN (${placeholders.join(", ")})`);
+      whereClauses.push(`material IN (${placeholders.join(", ")})`);
+    }
+
+    // Category filter
+    if (categories && categories.length > 0) {
+      values.push(...categories);
+      const placeholders = categories.map(
+        (_, i) => `$${values.length - categories.length + i + 1}`
+      );
+      whereClauses.push(`category IN (${placeholders.join(", ")})`);
     }
 
     // Room category filter
-    if (roomCategoryIds && roomCategoryIds.length > 0) {
-      values.push(...roomCategoryIds);
-      const placeholders = roomCategoryIds.map(
-        (_, i) => `$${values.length - roomCategoryIds.length + i + 1}`
+    if (roomCategories && roomCategories.length > 0) {
+      values.push(...roomCategories);
+      const placeholders = roomCategories.map(
+        (_, i) => `$${values.length - roomCategories.length + i + 1}`
       );
-      whereClauses.push(`room_category_id IN (${placeholders.join(", ")})`);
+      whereClauses.push(`room_category IN (${placeholders.join(", ")})`);
     }
-    // Image Banner type
 
-    // Banner image type filter
-    if (bannerImgTypes && bannerImgTypes.length > 0) {
-      values.push(...bannerImgTypes);
-      const placeholders = bannerImgTypes.map(
-        (_, i) => `$${values.length - bannerImgTypes.length + i + 1}`
+    // State  filter
+    if (states && states.length > 0) {
+      values.push(...states);
+      const placeholders = states.map(
+        (_, i) => `$${values.length - states.length + i + 1}`
       );
-      whereClauses.push(`banner_img_type IN (${placeholders.join(", ")})`);
+      whereClauses.push(`state IN (${placeholders.join(", ")})`);
     }
 
     // Price filter
@@ -64,6 +72,8 @@ export const furnitureController = {
       values.push(maxPrice);
       whereClauses.push(`price <= $${values.length}`);
     }
+
+    // Build query
     let query = "SELECT * FROM furniture";
     if (whereClauses.length > 0) {
       query += " WHERE " + whereClauses.join(" AND ");
@@ -91,7 +101,7 @@ export const furnitureController = {
 
     // Pagination
     const limit = 10;
-    const offset = (page - 1) * limit; // page 1 → offset 1
+    const offset = (page - 1) * limit;
     query += ` LIMIT ${limit} OFFSET ${offset}`;
 
     const { rows } = await pool.query(query, values);
@@ -111,29 +121,29 @@ export const furnitureController = {
   },
 
   async createFurniture({
+    category,
+    color_id,
     description,
-    imgSRC,
+    img_src,
+    material,
     price,
+    room_category,
     subtitle,
-    bannerImgType,
-    colorId,
-    materialId,
-    roomCategoryId,
     state,
   }: CreateFurnitureModel) {
     const query = `INSERT INTO furniture
-(description, img_src, price, subtitle, banner_img_type, color_id, material_id, room_category_id, state)
+(category, color_id, description, img_src, material, price, room_category, subtitle,  state)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING * `;
     const { rows } = await pool.query(query, [
+      category,
+      color_id,
       description,
-      imgSRC,
+      img_src,
+      material,
       price,
+      room_category,
       subtitle,
-      bannerImgType ?? null,
-      colorId,
-      materialId,
-      roomCategoryId,
-      state ?? null,
+      state,
     ]);
 
     return rows[0];
@@ -144,14 +154,9 @@ export const furnitureController = {
     const fields: string[] = [];
     let index = 1;
 
-
     if (updateData.description !== null) {
       fields.push(`description = $${index++}`);
       values.push(updateData.description);
-    }
-    if (updateData.bannerImgType !== null) {
-      fields.push(`banner_img_type = $${index++}`);
-      values.push(updateData.bannerImgType);
     }
     if (updateData.price !== null) {
       fields.push(`price = $${index++}`);
