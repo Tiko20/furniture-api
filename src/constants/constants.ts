@@ -1,0 +1,2 @@
+export const PASSWORD_SALT_ROUNDS = 10;
+export const TOKEN_EXPIRY = "24h";

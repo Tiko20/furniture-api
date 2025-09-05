@@ -1,4 +1,5 @@
 import express from "express";
+import passport from "../middlewares/passport"; // make sure this is your Passport JWT setup
 import { furnitureController } from "../controllers/furniture.controller";
 import { CreateFurnitureModel } from "../models/create-furniture.model";
 import { UpdateFurnitureModel } from "../models/update-furniture.model";
@@ -13,12 +14,13 @@ import { updateFurnitureValidationSchema } from "../validations/update-furniture
 
 const furnitureRouter = express.Router();
 
+// Public routes
 furnitureRouter.get("/all", async (_, res) => {
   try {
     const result = await furnitureController.getAllFurniture();
     res.json(result);
   } catch (error) {
-    res.json({ error: "Failed to get all furniture" });
+    res.status(500).json({ error: "Failed to get all furniture" });
   }
 });
 
@@ -28,7 +30,7 @@ furnitureRouter.get("/:id", async (req, res) => {
     const result = await furnitureController.getFurnitureById(Number(id));
     res.json(result);
   } catch (error) {
-    res.json(error);
+    res.status(500).json({ error });
   }
 });
 
@@ -73,55 +75,68 @@ furnitureRouter.get("/", async (req, res) => {
       roomCategories: parsedRoomCategory,
       sort,
     });
-    res.json(result);
+     res.json(result);
   } catch (error) {
-    res.json(error);
+     res.status(500).json({ error });
   }
 });
 
-furnitureRouter.post("/create", async (req, res) => {
-  const furniture: CreateFurnitureModel = req.body;
-  const parseData = createFurnitureValidationSchema.safeParse(furniture);
-  if (!parseData.success) {
-    res.status(500).json(parseData.error.issues);
-  } else {
-    try {
-      const result = await furnitureController.createFurniture(parseData.data);
-      res.json({
-        message: "Furniture created successfully",
-        Furniture: result,
-      });
-    } catch (error) {
-      res.json({ error: error });
+// Protected routes
+furnitureRouter.post(
+  "/create",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    const furniture: CreateFurnitureModel = req.body;
+    const parseData = createFurnitureValidationSchema.safeParse(furniture);
+    if (!parseData.success) {
+      res.status(400).json(parseData.error.issues);
+    } else {
+      try {
+        const result = await furnitureController.createFurniture(parseData.data);
+        res.json({
+          message: "Furniture created successfully",
+          Furniture: result,
+        });
+      } catch (error) {
+        res.status(500).json({ error });
+      }
     }
   }
-});
+);
 
-furnitureRouter.put("/update/:id", async (req, res) => {
-  const { id } = req.params;
-  const furniture: UpdateFurnitureModel = req.body;
+furnitureRouter.put(
+  "/update/:id",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    const { id } = req.params;
+    const furniture: UpdateFurnitureModel = req.body;
 
-  const parseData = updateFurnitureValidationSchema.safeParse(furniture);
-  if (!parseData.success) {
-    res.status(500).json(parseData.error.issues);
-  } else {
-    try {
-      await furnitureController.updateFurniture(Number(id), parseData.data);
-      res.json("Updated successfully");
-    } catch (error) {
-      res.json(error);
+    const parseData = updateFurnitureValidationSchema.safeParse(furniture);
+    if (!parseData.success) {
+      res.status(400).json(parseData.error.issues);
+    } else {
+      try {
+        await furnitureController.updateFurniture(Number(id), parseData.data);
+        res.json({ message: "Updated successfully" });
+      } catch (error) {
+        res.status(500).json({ error });
+      }
     }
   }
-});
+);
 
-furnitureRouter.delete("/delete/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    await furnitureController.deleteFurniture(Number(id));
-    res.json("Deleted successfully");
-  } catch (error) {
-    res.json(error);
+furnitureRouter.delete(
+  "/delete/:id",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    const { id } = req.params;
+    try {
+      await furnitureController.deleteFurniture(Number(id));
+      res.json({ message: "Deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ error });
+    }
   }
-});
+);
 
 export default furnitureRouter;
